@@ -15,6 +15,7 @@
   <arg name="robot_namespace" default="robot"/>
   <arg name="rviz" default="false"/>
   <arg name="input_bag_file" default="/home/daizhirui/Data/NewerCollege/2021-07-01-10-37-38-quad-easy.bag"/>
+  <arg name="gt_path_file" default="/home/daizhirui/Data/NewerCollege/poses.csv"/>
   <arg name="playback_rate" default="0.5"/>
   <arg name="output_bag_file" default="/home/daizhirui/Data/NewerCollege/dlio_newer_college_recording.bag"/>
   <arg name="record_bag" default="false"/>
@@ -23,7 +24,8 @@
   <arg name="imu_topic" default="/os_cloud_node/imu"/>
 
   <!-- Static transform from odom to robot_namespace/odom -->
-  <!-- <node name="odom_tf_broadcaster" pkg="tf2_ros" type="static_transform_publisher" args="0 0 0 0 0 0 odom /odom" /> -->
+  <node name="odom_tf_broadcaster" pkg="tf2_ros" type="static_transform_publisher"
+    args="6.28844577 -56.26430662 0.9541161 0.9842636332156809 0.00902721950346146 -0.026213162170236233 odom robot/odom" />
   <!-- Static transform from robot_namespace/base_link to robot_namespace/dlio/base_link -->
   <node name="base_link_tf_broadcaster" pkg="tf2_ros" type="static_transform_publisher" args="0 0 0 0 0 0 $(arg robot_namespace)/dlio/os_sensor os_sensor" />
 
@@ -32,6 +34,12 @@
   <!-- auto exit if record_bag is true -->
   <node name="player" pkg="rosbag" type="play" output="screen" args="--clock -r $(arg playback_rate) $(arg input_bag_file)" required="$(arg record_bag)"/>
 
+  <!-- gt path to check if the sensor frame transforms are correct -->
+  <node name="gt_path_publisher" pkg="direct_lidar_inertial_odometry" type="publish_path.py" output="screen">
+    <param name="frame_id" value="odom"/>
+    <param name="path_file" value="$(arg gt_path_file)"/>
+  </node>
+
   <!-- DLIO Odometry Node -->
   <node ns="$(arg robot_namespace)" name="dlio_odom" pkg="direct_lidar_inertial_odometry" type="dlio_odom_node" output="screen" clear_params="true"
   >
@@ -39,6 +47,9 @@
     <!-- Load parameters -->
     <rosparam file="$(find direct_lidar_inertial_odometry)/cfg/dlio_newer_college.yaml" command="load"/>
     <rosparam file="$(find direct_lidar_inertial_odometry)/cfg/params.yaml" command="load"/>
+
+    <param name="dlio/frames/publishDeskewedInLidarFrame" value="false"/>
+    <param name="dlio/odom/imu/calibration/time" value="1.0"/>
 
     <!-- Subscriptions -->
     <remap from="~pointcloud" to="$(arg pointcloud_topic)"/>
