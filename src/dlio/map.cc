@@ -26,8 +26,15 @@ dlio::MapNode::MapNode(): Node("dlio_map_node") {
   this->map_pub = this->create_publisher<sensor_msgs::msg::PointCloud2>("map", 100);
 
   this->save_pcd_cb_group = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+#ifdef ROS_HUMBLE
   this->save_pcd_srv = this->create_service<direct_lidar_inertial_odometry::srv::SavePCD>("save_pcd",
       std::bind(&dlio::MapNode::savePCD, this, std::placeholders::_1, std::placeholders::_2), rmw_qos_profile_services_default, this->save_pcd_cb_group);
+#else
+  this->save_pcd_srv = this->create_service<direct_lidar_inertial_odometry::srv::SavePCD>("save_pcd",
+      std::bind(&dlio::MapNode::savePCD, this, std::placeholders::_1, std::placeholders::_2),
+      rclcpp::ServicesQoS(),
+      this->save_pcd_cb_group);
+#endif
 
   this->dlio_map = std::make_shared<pcl::PointCloud<PointType>>();
 
@@ -70,7 +77,7 @@ void dlio::MapNode::callbackKeyframe(const sensor_msgs::msg::PointCloud2::ConstS
     map_ros.header.stamp = this->now();
     map_ros.header.frame_id = this->odom_frame;
     this->map_pub->publish(map_ros);
-  } 
+  }
 }
 
 void dlio::MapNode::savePCD(std::shared_ptr<direct_lidar_inertial_odometry::srv::SavePCD::Request> req,

@@ -1,5 +1,5 @@
 #
-#   Copyright (c)     
+#   Copyright (c)
 #
 #   The Verifiable & Control-Theoretic Robotics (VECTR) Lab
 #   University of California, Los Angeles
@@ -10,7 +10,7 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.conditions import IfCondition   
+from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -18,27 +18,27 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
     current_pkg = FindPackageShare('direct_lidar_inertial_odometry')
 
-    # Set default arguments
-    rviz = LaunchConfiguration('rviz', default='false')
-    pointcloud_topic = LaunchConfiguration('pointcloud_topic', default='points_raw')
-    imu_topic = LaunchConfiguration('imu_topic', default='imu_raw')
-
     # Define arguments
     declare_rviz_arg = DeclareLaunchArgument(
         'rviz',
-        default_value=rviz,
+        default_value="false",
         description='Launch RViz'
     )
     declare_pointcloud_topic_arg = DeclareLaunchArgument(
         'pointcloud_topic',
-        default_value=pointcloud_topic,
+        default_value="points_raw",
         description='Pointcloud topic name'
     )
     declare_imu_topic_arg = DeclareLaunchArgument(
         'imu_topic',
-        default_value=imu_topic,
+        default_value="imu_raw",
         description='IMU topic name'
     )
+
+    # get launch configuration variables
+    rviz = LaunchConfiguration('rviz')
+    pointcloud_topic = LaunchConfiguration('pointcloud_topic')
+    imu_topic = LaunchConfiguration('imu_topic')
 
     # Load parameters
     dlio_yaml_path = PathJoinSubstitution([current_pkg, 'cfg', 'dlio.yaml'])
@@ -81,7 +81,7 @@ def generate_launch_description():
         name='dlio_rviz',
         arguments=['-d', rviz_config_path],
         output='screen',
-        condition=IfCondition(LaunchConfiguration('rviz'))
+        condition=IfCondition(rviz),
     )
 
     return LaunchDescription([

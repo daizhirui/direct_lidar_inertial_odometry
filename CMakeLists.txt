@@ -28,6 +28,10 @@ find_package(Threads REQUIRED)
 set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_STANDARD 17)
 
+set(ROS_DISTRO "$ENV{ROS_DISTRO}")
+string(TOUPPER "${ROS_DISTRO}" ROS_DISTRO)
+add_compile_definitions(ROS_${ROS_DISTRO})
+
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 
@@ -37,7 +41,7 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 rosidl_generate_interfaces(
     ${PROJECT_NAME}
         srv/SavePCD.srv
-    DEPENDENCIES       
+    DEPENDENCIES
 )
 rosidl_get_typesupport_target(cpp_typesupport_target
   ${PROJECT_NAME} rosidl_typesupport_cpp)
@@ -80,10 +84,13 @@ ament_package()
 
 # Binaries
 install( TARGETS dlio_odom_node dlio_map_node
-         DESTINATION lib/${PROJECT_NAME} 
+         DESTINATION lib/${PROJECT_NAME}
 )
 install( DIRECTORY cfg launch
-         DESTINATION share/${PROJECT_NAME} 
+         DESTINATION share/${PROJECT_NAME}
+)
+install( PROGRAMS scripts/publish_path.py
+         DESTINATION lib/${PROJECT_NAME}
 )
 
 add_compile_options(-std=c++14)

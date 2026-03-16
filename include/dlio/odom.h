@@ -21,6 +21,8 @@
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
 
 // BOOST
 #include <boost/format.hpp>
@@ -333,6 +335,7 @@ private:
 
   bool densemap_filtered_;
   bool wait_until_move_;
+  bool publish_deskewed_in_lidar_frame_;
 
   double crop_size_;
 
