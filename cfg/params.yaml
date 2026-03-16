@@ -35,6 +35,8 @@
     odom/preprocessing/cropBoxFilter/size: 0.35
     odom/preprocessing/voxelFilter/res: 0.25
 
+    odom/odom_frame: odom
+
     odom/keyframe/threshD: 1.0
     odom/keyframe/threshR: 45.0
 

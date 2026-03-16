@@ -9,8 +9,8 @@
 #
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, ExecuteProcess
-from launch.conditions import IfCondition
+from launch.actions import DeclareLaunchArgument, ExecuteProcess, Shutdown
+from launch.conditions import IfCondition, UnlessCondition
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -46,6 +46,16 @@ def generate_launch_description():
         default_value="0.5",
         description="Play rate for rosbag",
     )
+    declare_record_bag_arg = DeclareLaunchArgument(
+        "record_bag",
+        default_value="false",
+        description="Record output topics to a rosbag",
+    )
+    declare_output_bag_file_arg = DeclareLaunchArgument(
+        "output_bag_file",
+        default_value="/home/daizhirui/Data/NewerCollege/dlio_newer_college_recording",
+        description="Output rosbag file path",
+    )
 
     gt_path_file = LaunchConfiguration("gt_path_file")
     robot_namespace = LaunchConfiguration("namespace")
@@ -54,6 +64,8 @@ def generate_launch_description():
     imu_topic = LaunchConfiguration("imu_topic")
     rosbag_dir = LaunchConfiguration("rosbag_dir")
     rosbag_playrate = LaunchConfiguration("rosbag_playrate")
+    record_bag = LaunchConfiguration("record_bag")
+    output_bag_file = LaunchConfiguration("output_bag_file")
 
     # Load parameters
     dlio_yaml_path = PathJoinSubstitution([current_pkg, "cfg", "dlio_newer_college.yaml"])
@@ -66,17 +78,17 @@ def generate_launch_description():
         name="odom_tf_broadcaster",
         arguments=[
             "--x",
-            "6.374942413212762",
+            "6.825154886605512",
             "--y",
-            "-56.170104988850824",
+            "-55.33546744126587",
             "--z",
-            "0.958313148351424",
+            "0.9433306268722826",
             "--yaw",
-            "0.9841695187833623",
+            "1.0759642962197828",
             "--pitch",
-            "0.026731964213864146",
+            "0.06803519183708207",
             "--roll",
-            "-0.006638374779846217",
+            "-0.054227076410519826",
             "--frame-id",
             "odom",
             "--child-frame-id",
@@ -172,18 +184,42 @@ def generate_launch_description():
         condition=IfCondition(rviz),
     )
 
-    # Rosbag play node
+    # Rosbag play node (auto exit all when playback finishes if recording)
+    rosbag_play_cmd = [
+        "ros2", "bag", "play", rosbag_dir, "--clock", "--rate", rosbag_playrate,
+    ]
     rosbag_play_node = ExecuteProcess(
+        cmd=rosbag_play_cmd,
+        output="screen",
+        condition=UnlessCondition(record_bag),
+    )
+    rosbag_play_node_required = ExecuteProcess(
+        cmd=rosbag_play_cmd,
+        output="screen",
+        on_exit=Shutdown(reason="Rosbag playback finished"),
+        condition=IfCondition(record_bag),
+    )
+
+    # Rosbag record node
+    rosbag_record_node = ExecuteProcess(
         cmd=[
             "ros2",
             "bag",
-            "play",
-            rosbag_dir,
-            "--clock",
-            "--rate",
-            rosbag_playrate,
+            "record",
+            "-o",
+            output_bag_file,
+            ["/", robot_namespace, "/dlio/odom_node/odom"],
+            ["/", robot_namespace, "/dlio/odom_node/pose"],
+            ["/", robot_namespace, "/dlio/odom_node/path"],
+            ["/", robot_namespace, "/dlio/odom_node/keyframes"],
+            ["/", robot_namespace, "/dlio/odom_node/pointcloud/keyframe"],
+            ["/", robot_namespace, "/dlio/odom_node/pointcloud/deskewed"],
+            ["/", robot_namespace, "/dlio/map_node/map"],
+            "/tf",
+            "/tf_static",
         ],
         output="screen",
+        condition=IfCondition(record_bag),
     )
 
     return LaunchDescription(
@@ -193,6 +229,8 @@ def generate_launch_description():
             declare_gt_path_file_arg,
             declare_rosbag_dir_arg,
             declare_rosbag_playrate_arg,
+            declare_record_bag_arg,
+            declare_output_bag_file_arg,
             declare_pointcloud_topic_arg,
             declare_imu_topic_arg,
             odom_tf_broadcaster,
@@ -202,5 +240,7 @@ def generate_launch_description():
             dlio_map_node,
             rviz_node,
             rosbag_play_node,
+            rosbag_play_node_required,
+            rosbag_record_node,
         ]
     )

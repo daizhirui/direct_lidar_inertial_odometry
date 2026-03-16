@@ -13,8 +13,9 @@
 #include "dlio/dlio.h"
 
 // ROS
-#include "rclcpp/rclcpp.hpp"
 #include "direct_lidar_inertial_odometry/srv/save_pcd.hpp"
+#include "rclcpp/rclcpp.hpp"
+
 #include <sensor_msgs/msg/point_cloud2.hpp>
 
 // PCL
@@ -22,36 +23,37 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl_conversions/pcl_conversions.h>
 
-class dlio::MapNode: public rclcpp::Node {
+class dlio::MapNode : public rclcpp::Node {
 
 public:
+    MapNode();
+    ~MapNode();
 
-  MapNode();
-  ~MapNode();
-
-  void start();
+    void
+    start();
 
 private:
+    void
+    getParams();
 
-  void getParams();
+    void
+    callbackKeyframe(const sensor_msgs::msg::PointCloud2::ConstSharedPtr &keyframe);
 
-  void callbackKeyframe(const sensor_msgs::msg::PointCloud2::ConstSharedPtr& keyframe);
+    void
+    savePCD(
+        std::shared_ptr<direct_lidar_inertial_odometry::srv::SavePCD::Request> req,
+        std::shared_ptr<direct_lidar_inertial_odometry::srv::SavePCD::Response> res);
 
-  void savePCD(std::shared_ptr<direct_lidar_inertial_odometry::srv::SavePCD::Request> req,
-               std::shared_ptr<direct_lidar_inertial_odometry::srv::SavePCD::Response> res);
+    rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr keyframe_sub;
+    rclcpp::CallbackGroup::SharedPtr keyframe_cb_group, save_pcd_cb_group;
+    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr map_pub;
 
+    rclcpp::Service<direct_lidar_inertial_odometry::srv::SavePCD>::SharedPtr save_pcd_srv;
 
-  rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr keyframe_sub;
-  rclcpp::CallbackGroup::SharedPtr keyframe_cb_group, save_pcd_cb_group;
-  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr map_pub;
+    pcl::PointCloud<PointType>::Ptr dlio_map;
+    pcl::VoxelGrid<PointType> voxelgrid;
 
-  rclcpp::Service<direct_lidar_inertial_odometry::srv::SavePCD>::SharedPtr save_pcd_srv;
+    std::string odom_frame;
 
-  pcl::PointCloud<PointType>::Ptr dlio_map;
-  pcl::VoxelGrid<PointType> voxelgrid;
-
-  std::string odom_frame;
-
-  double leaf_size_;
-
+    double leaf_size_;
 };

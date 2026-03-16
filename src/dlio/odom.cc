@@ -49,7 +49,7 @@ dlio::OdomNode::OdomNode()
     imu_sub_opt.callback_group = this->imu_cb_group;
     this->imu_sub = this->create_subscription<sensor_msgs::msg::Imu>(
         "imu",
-        rclcpp::SensorDataQoS(),
+        rclcpp::QoS(1000).reliable(),
         std::bind(&dlio::OdomNode::callbackImu, this, std::placeholders::_1),
         imu_sub_opt);
 
@@ -258,9 +258,10 @@ dlio::OdomNode::getParams() {
     dlio::declare_param(this, "extrinsics/baselink2imu/R", baselink2imu_R, R_default);
     this->extrinsics.baselink2imu.t =
         Eigen::Vector3f(baselink2imu_t[0], baselink2imu_t[1], baselink2imu_t[2]);
+    std::vector<float> baselink2imu_R_f(baselink2imu_R.begin(), baselink2imu_R.end());
     this->extrinsics.baselink2imu.R =
         Eigen::Map<const Eigen::Matrix<float, -1, -1, Eigen::RowMajor>>(
-            std::vector<float>(baselink2imu_R.begin(), baselink2imu_R.end()).data(),
+            baselink2imu_R_f.data(),
             3,
             3);
     this->extrinsics.baselink2imu_T = Eigen::Matrix4f::Identity();
@@ -274,9 +275,10 @@ dlio::OdomNode::getParams() {
 
     this->extrinsics.baselink2lidar.t =
         Eigen::Vector3f(baselink2lidar_t[0], baselink2lidar_t[1], baselink2lidar_t[2]);
+    std::vector<float> baselink2lidar_R_f(baselink2lidar_R.begin(), baselink2lidar_R.end());
     this->extrinsics.baselink2lidar.R =
         Eigen::Map<const Eigen::Matrix<float, -1, -1, Eigen::RowMajor>>(
-            std::vector<float>(baselink2lidar_R.begin(), baselink2lidar_R.end()).data(),
+            baselink2lidar_R_f.data(),
             3,
             3);
 
@@ -313,10 +315,9 @@ dlio::OdomNode::getParams() {
         this->state.b.gyro[0] = prior_gyro_bias[0];
         this->state.b.gyro[1] = prior_gyro_bias[1];
         this->state.b.gyro[2] = prior_gyro_bias[2];
-        this->imu_accel_sm_ = Eigen::Map<const Eigen::Matrix<float, -1, -1, Eigen::RowMajor>>(
-            std::vector<float>(imu_sm.begin(), imu_sm.end()).data(),
-            3,
-            3);
+        std::vector<float> imu_sm_f(imu_sm.begin(), imu_sm.end());
+        this->imu_accel_sm_ =
+            Eigen::Map<const Eigen::Matrix<float, -1, -1, Eigen::RowMajor>>(imu_sm_f.data(), 3, 3);
     } else {
         this->state.b.accel = Eigen::Vector3f(0., 0., 0.);
         this->state.b.gyro = Eigen::Vector3f(0., 0., 0.);
@@ -1534,7 +1535,7 @@ dlio::OdomNode::computeSpaciousness() {
     // compute range of points
     std::vector<float> ds;
 
-    for (int i = 0; i <= this->original_scan->points.size(); i++) {
+    for (int i = 0; i < this->original_scan->points.size(); i++) {
         float d = std::sqrt(
             pow(this->original_scan->points[i].x, 2) + pow(this->original_scan->points[i].y, 2));
         ds.push_back(d);

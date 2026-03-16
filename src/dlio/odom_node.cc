@@ -12,16 +12,16 @@
 
 #include "dlio/odom.h"
 
-int main(int argc, char** argv) {
+int
+main(int argc, char **argv) {
 
-  rclcpp::init(argc, argv);
-  auto node = std::make_shared<dlio::OdomNode>();
-  rclcpp::executors::MultiThreadedExecutor executor;
-  executor.add_node(node);
-  executor.spin();
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<dlio::OdomNode>();
+    rclcpp::executors::MultiThreadedExecutor executor;
+    executor.add_node(node);
+    executor.spin();
 
-  rclcpp::shutdown();
+    rclcpp::shutdown();
 
-  return 0;
-
+    return 0;
 }
