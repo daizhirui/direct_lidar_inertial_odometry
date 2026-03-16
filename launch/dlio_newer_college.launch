@@ -24,8 +24,10 @@
   <arg name="imu_topic" default="/os_cloud_node/imu"/>
 
   <!-- Static transform from odom to robot_namespace/odom -->
+  <!-- <node name="odom_tf_broadcaster" pkg="tf2_ros" type="static_transform_publisher"
+    args="6.28844577 -56.26430662 0.9541161 0.9842636332156809 0.00902721950346146 -0.026213162170236233 odom robot/odom" /> -->
   <node name="odom_tf_broadcaster" pkg="tf2_ros" type="static_transform_publisher"
-    args="6.28844577 -56.26430662 0.9541161 0.9842636332156809 0.00902721950346146 -0.026213162170236233 odom robot/odom" />
+    args="6.374942413212762 -56.170104988850824 0.958313148351424 0.9841695187833623 0.026731964213864146 -0.006638374779846217 odom robot/odom" />
   <!-- Static transform from robot_namespace/base_link to robot_namespace/dlio/base_link -->
   <node name="base_link_tf_broadcaster" pkg="tf2_ros" type="static_transform_publisher" args="0 0 0 0 0 0 $(arg robot_namespace)/dlio/os_sensor os_sensor" />
 

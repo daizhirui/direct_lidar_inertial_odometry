@@ -12,19 +12,19 @@
 
 #include "dlio/map.h"
 
-int main(int argc, char** argv) {
+int
+main(int argc, char **argv) {
 
-  mallopt(M_ARENA_MAX, 1);
+    mallopt(M_ARENA_MAX, 1);
 
-  ros::init(argc, argv, "dlio_map_node");
-  ros::NodeHandle nh("~");
+    ros::init(argc, argv, "dlio_map_node");
+    ros::NodeHandle nh("~");
 
-  dlio::MapNode node(nh);
-  ros::AsyncSpinner spinner(0);
-  spinner.start();
-  node.start();
-  ros::waitForShutdown();
+    dlio::MapNode node(nh);
+    ros::AsyncSpinner spinner(0);
+    spinner.start();
+    node.start();
+    ros::waitForShutdown();
 
-  return 0;
-
+    return 0;
 }
