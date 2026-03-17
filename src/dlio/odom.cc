@@ -192,6 +192,9 @@ dlio::OdomNode::getParams() {
     // Version
     dlio::declare_param(this, "version", this->version_, "0.0.0");
 
+    // Debug
+    dlio::declare_param(this, "terminal_output", this->terminal_output_, true);
+
     // Frames
     dlio::declare_param(this, "frames/odom", this->odom_frame, "odom");
     dlio::declare_param(this, "frames/baselink", this->baselink_frame, "base_link");
@@ -202,17 +205,6 @@ dlio::OdomNode::getParams() {
         "frames/publishDeskewedInLidarFrame",
         this->publish_deskewed_in_lidar_frame_,
         true);
-
-    /// concat namespace to frames
-    std::string robot_namespace = this->get_namespace();
-    if (robot_namespace[0] == '/') { robot_namespace.erase(0, 1); }
-    if (!robot_namespace.empty() && robot_namespace.back() != '/') { robot_namespace += '/'; }
-    if (!robot_namespace.empty()) {
-        this->odom_frame = robot_namespace + this->odom_frame;
-        this->baselink_frame = robot_namespace + this->baselink_frame;
-        this->lidar_frame = robot_namespace + this->lidar_frame;
-        this->imu_frame = robot_namespace + this->imu_frame;
-    }
 
     // Deskew Flag
     dlio::declare_param(this, "pointcloud/deskew", this->deskew_, true);
@@ -501,9 +493,11 @@ dlio::OdomNode::publishCloud(
             transform_stamped = tf_buffer_.lookupTransform(
                 this->lidar_frame,
                 this->odom_frame,
-                this->scan_header_stamp,
-                rclcpp::Duration::from_seconds(5.0));
-        } catch (tf2::TransformException &ex) { RCLCPP_WARN(this->get_logger(), "%s", ex.what()); }
+                tf2::TimePointZero);
+        } catch (tf2::TransformException &ex) {
+            RCLCPP_WARN(this->get_logger(), "%s", ex.what());
+            return;
+        }
         Eigen::Matrix4f T = Eigen::Matrix4f::Identity();
         T(0, 3) = transform_stamped.transform.translation.x;
         T(1, 3) = transform_stamped.transform.translation.y;
@@ -2006,6 +2000,7 @@ dlio::OdomNode::debug() {
         this->cpu_percents.size();
 
     // Print to terminal
+    if (!this->terminal_output_) return;
     printf("\033[2J\033[1;1H");
 
     std::cout << std::endl

@@ -370,6 +370,7 @@ private:
     int numProcessors;
 
     // Parameters
+    bool terminal_output_;
     std::string version_;
     int num_threads_;
 

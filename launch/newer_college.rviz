@@ -7,7 +7,6 @@ Panels:
         - /Global Options1
         - /Status1
         - /PointCloud2(deskewed)1
-        - /Path(G.T.)1
       Splitter Ratio: 0.5
     Tree Height: 1176
   - Class: rviz_common/Selection
@@ -64,7 +63,7 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 888
+      Max Intensity: 1480
       Min Color: 0; 0; 0
       Min Intensity: 3
       Name: PointCloud2(deskewed)
@@ -185,7 +184,7 @@ Visualization Manager:
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
       Line Style: Lines
-      Line Width: 0.029999999329447746
+      Line Width: 0.10000000149011612
       Name: Path(G.T.)
       Offset:
         X: 0
@@ -202,7 +201,42 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /gt_path_publisher/path
+        Value: /robot/gt_path_publisher/path
+      Value: true
+    - Class: rviz_default_plugins/TF
+      Enabled: true
+      Filter (blacklist): ""
+      Filter (whitelist): ""
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+        dlio/base_link:
+          Value: true
+        dlio/imu:
+          Value: true
+        dlio/lidar:
+          Value: true
+        dlio/odom:
+          Value: true
+        odom:
+          Value: true
+        os_sensor:
+          Value: true
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: false
+      Tree:
+        odom:
+          dlio/odom:
+            dlio/base_link:
+              dlio/imu:
+                {}
+              dlio/lidar:
+                os_sensor:
+                  {}
+      Update Interval: 0
       Value: true
   Enabled: true
   Global Options:

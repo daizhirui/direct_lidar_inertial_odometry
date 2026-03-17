@@ -62,12 +62,6 @@ dlio::MapNode::getParams() {
 
     this->get_parameter("odom/odom_frame", this->odom_frame);
     this->get_parameter("map/sparse/leafSize", this->leaf_size_);
-
-    /// concat namespace to frames
-    std::string robot_namespace = this->get_namespace();
-    if (robot_namespace[0] == '/') { robot_namespace.erase(0, 1); }
-    if (!robot_namespace.empty() && robot_namespace.back() != '/') { robot_namespace += '/'; }
-    if (!robot_namespace.empty()) { this->odom_frame = robot_namespace + this->odom_frame; }
 }
 
 void

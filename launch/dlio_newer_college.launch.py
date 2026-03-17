@@ -71,11 +71,18 @@ def generate_launch_description():
     dlio_yaml_path = PathJoinSubstitution([current_pkg, "cfg", "dlio_newer_college.yaml"])
     dlio_params_yaml_path = PathJoinSubstitution([current_pkg, "cfg", "params.yaml"])
 
-    # Static transform: odom -> robot/odom
+    # Under the namespace!!
+    tf_remappings = [
+        ("/tf", "tf"),  # Remap /tf to ensure correct TF tree when using namespaces
+        ("/tf_static", "tf_static"),  # Remap /tf_static for static transforms
+    ]
+
+    # Static transform: odom -> dlio/odom
     odom_tf_broadcaster = Node(
         package="tf2_ros",
         executable="static_transform_publisher",
         name="odom_tf_broadcaster",
+        namespace=robot_namespace,
         arguments=[
             "--x",
             "6.825154886605512",
@@ -92,15 +99,17 @@ def generate_launch_description():
             "--frame-id",
             "odom",
             "--child-frame-id",
-            PathJoinSubstitution([robot_namespace, "odom"]),
+            "dlio/odom",
         ],
+        remappings=tf_remappings,
     )
 
-    # Static transform: robot/dlio/os_sensor -> os_sensor
+    # Static transform: dlio/lidar -> os_sensor
     base_link_tf_broadcaster = Node(
         package="tf2_ros",
         executable="static_transform_publisher",
         name="base_link_tf_broadcaster",
+        namespace=robot_namespace,
         arguments=[
             "--x",
             "0",
@@ -117,10 +126,11 @@ def generate_launch_description():
             "--qz",
             "0",
             "--frame-id",
-            PathJoinSubstitution([robot_namespace, "dlio", "lidar"]),
+            "dlio/lidar",
             "--child-frame-id",
             "os_sensor",
         ],
+        remappings=tf_remappings,
     )
 
     # Ground truth path publisher
@@ -128,11 +138,13 @@ def generate_launch_description():
         package="direct_lidar_inertial_odometry",
         executable="publish_path.py",
         name="gt_path_publisher",
+        namespace=robot_namespace,
         output="screen",
         parameters=[
             {"frame_id": "odom"},
             {"path_file": gt_path_file},
         ],
+        remappings=tf_remappings,
     )
 
     # DLIO Odometry Node
@@ -158,7 +170,7 @@ def generate_launch_description():
             ("kf_pose", "dlio/odom_node/keyframes"),
             ("kf_cloud", "dlio/odom_node/pointcloud/keyframe"),
             ("deskewed", "dlio/odom_node/pointcloud/deskewed"),
-        ],
+        ] + tf_remappings,
     )
 
     # DLIO Mapping Node
@@ -170,7 +182,8 @@ def generate_launch_description():
         parameters=[dlio_yaml_path, dlio_params_yaml_path],
         remappings=[
             ("keyframes", "dlio/odom_node/pointcloud/keyframe"),
-        ],
+            ("map", "dlio/map_node/map"),
+        ] + tf_remappings,
     )
 
     # RViz node
@@ -179,7 +192,9 @@ def generate_launch_description():
         package="rviz2",
         executable="rviz2",
         name="dlio_rviz",
+        namespace=robot_namespace,
         arguments=["-d", rviz_config_path],
+        remappings=tf_remappings,
         output="screen",
         condition=IfCondition(rviz),
     )
@@ -215,8 +230,9 @@ def generate_launch_description():
             ["/", robot_namespace, "/dlio/odom_node/pointcloud/keyframe"],
             ["/", robot_namespace, "/dlio/odom_node/pointcloud/deskewed"],
             ["/", robot_namespace, "/dlio/map_node/map"],
-            "/tf",
-            "/tf_static",
+            ["/", robot_namespace, "/gt_path_publisher/path"],
+            ["/", robot_namespace, "/tf"],
+            ["/", robot_namespace, "/tf_static"],
         ],
         output="screen",
         condition=IfCondition(record_bag),

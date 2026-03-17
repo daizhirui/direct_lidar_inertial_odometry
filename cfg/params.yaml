@@ -13,7 +13,7 @@
 /**:
   ros__parameters:
     use_sim_time: true
-    frames/odom: odom
+    frames/odom: dlio/odom
     frames/baselink: dlio/base_link
     frames/lidar: dlio/lidar
     frames/imu: dlio/imu
@@ -35,7 +35,7 @@
     odom/preprocessing/cropBoxFilter/size: 0.35
     odom/preprocessing/voxelFilter/res: 0.25
 
-    odom/odom_frame: odom
+    odom/odom_frame: dlio/odom
 
     odom/keyframe/threshD: 1.0
     odom/keyframe/threshR: 45.0
