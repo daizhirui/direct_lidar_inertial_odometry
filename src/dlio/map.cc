@@ -57,11 +57,11 @@ dlio::MapNode::~MapNode() {}
 void
 dlio::MapNode::getParams() {
 
-    this->declare_parameter<std::string>("odom/odom_frame", "odom");
-    this->declare_parameter<double>("map/sparse/leafSize", 0.5);
+    this->declare_parameter<std::string>("odom.odom_frame", "odom");
+    this->declare_parameter<double>("map.sparse.leafSize", 0.5);
 
-    this->get_parameter("odom/odom_frame", this->odom_frame);
-    this->get_parameter("map/sparse/leafSize", this->leaf_size_);
+    this->get_parameter("odom.odom_frame", this->odom_frame);
+    this->get_parameter("map.sparse.leafSize", this->leaf_size_);
 }
 
 void
